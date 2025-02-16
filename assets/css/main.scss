@@ -1,0 +1,74 @@
+---
+---
+
+/*
+ *    Minimal Mistakes Jekyll Theme
+ *
+ *  - Michael Rose
+ *  - mademistakes.com
+ *  - https://twitter.com/mmistakes
+ *
+*/
+
+@import "vendor/breakpoint/breakpoint"; // media query mixins
+@import "variables";
+@import "mixins";
+@import "vendor/susy/susy";
+
+@import "reset";
+@import "base";
+
+@import "utilities";
+@import "animations";
+@import "tables";
+@import "buttons";
+@import "notices";
+@import "masthead";
+@import "navigation";
+@import "footer";
+@import "syntax";
+
+@import "forms";
+
+@import "page";
+@import "archive";
+@import "sidebar";
+
+@import "vendor/font-awesome/fontawesome";
+@import "vendor/font-awesome/solid";
+@import "vendor/font-awesome/brands";
+@import "vendor/magnific-popup/magnific-popup";
+@import "print";
+
+.expandable-box {
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    margin-bottom: 1em;
+}
+  
+  .expandable-box summary {
+    padding: 0.5em 1em;
+    background-color: #c8f079;
+    cursor: pointer;
+    font-weight: bold;
+}
+  
+  .expandable-box summary:hover {
+    background-color: #e8e8e8;
+}
+  
+  .expandable-box[open] summary {
+    border-bottom: 1px solid #ddd;
+}
+/*
+.math-expectation {
+    font-family: "Times New Roman", Times, serif;
+    font-style: italic;
+  }
+  .math-expectation sub {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 0.8em;
+    margin-left: -0.1em;
+  }
+*/

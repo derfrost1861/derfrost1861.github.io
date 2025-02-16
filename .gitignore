@@ -1,0 +1,13 @@
+# Ignore the contents of the _site directory
+_site/
+
+# Ignore the Gemfile that is generated
+Gemfile.lock
+dockerStartAndJekyllTutorial.sh
+readme.txt
+_posts/2012-08-14-blog-post-1.md
+_posts/2013-08-14-blog-post-2.md
+_posts/2015-08-14-blog-post-4-041124.md
+_posts/2015-08-14-blog-post-4.md
+_posts/2199-01-01-future-post.md
+_posts/question2Inga.tex

@@ -1,0 +1,16 @@
+<!--<details class="expandable-box">
+    <summary>{{ include.title }}</summary>
+    {{ include.content | markdownify }}
+</details>-->
+<details class="expandable-box">
+    <summary>
+      <span class="math-title">{{ include.title }}</span>
+    </summary>
+    <div class="expandable-content">
+      {{ include.content | markdownify }}
+    </div>
+  </details>
+  
+  <script>
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, document.querySelector('.math-title')]);
+</script>
