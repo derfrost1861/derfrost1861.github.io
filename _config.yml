@@ -8,7 +8,7 @@
 
 # Basic Site Settings
 locale                   : "en-US"
-title                    : "More or less technical blog"
+title                    : ""
 title_separator          : "-"
 name                     : &name "Derek Frost"
 #description              : &description "Computational Art and Science enthusiast working in energy"
