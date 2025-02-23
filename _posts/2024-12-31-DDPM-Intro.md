@@ -104,8 +104,8 @@ Basic Intuition
 ======
 
 The approach is proposed by <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
-and referred to as Diffusion Probabilistic Models. The authors propose the two-step process of first systematically
-and slowly destroying structure in input and then learning a reverse process to restore structure in data.
+and referred to as Diffusion Probabilistic Models. The authors propose a two-step process: first systematically
+and slowly destroying structure in input, then learning a reverse process to restore structure in data.
 The method uses a Markov chain, which, among many other applications, models Brownian motion.
 For Brownian motion (and a Markov chain), it is true that a future state of the particle (event)
 only depends on the current state of the event. A change of state is controlled by transition probabilities,
@@ -167,11 +167,12 @@ input data (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al.
 think of forward process posteriors as reverse diffusion steps).
 Emma uses strict mathematical logic when helping us to choose correct reverse Brownian steps, which I share further down the text._
 
-We have now briefly described the ingredients to train a neural network and then predict images from noise.
+Interestingly enough, we have just briefly described how diffusion models are trained
+under a 'simple' de-noising objective. We have all the ingredients to train a de-noising neural network and then predict images from noise.
 We know the form of the forward noising process and can create de-noised training labels from the reverse process,
 conditioned on input images (<a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, 2022</a>). Concisely,
 to tackle general reverse process intractability, you train on a tractable reverse process, conditioned on input data,
-and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise: we reverse step by step until a Swiss-roll image shows up. You now have sampled an image from the learnt distribution.
+and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise: step by step we reverse the noising process until a Swiss-roll image shows up. You now have sampled an image from the learnt distribution.
 
-We have just concluded the introductory section. Next we cover [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %})
-of diffusion models.
+I hope this high-level sketch is illustrative and suggest to proceed with the [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %})
+chapter, where we start formulating diffusion model building blocks with more mathematical rigor.
