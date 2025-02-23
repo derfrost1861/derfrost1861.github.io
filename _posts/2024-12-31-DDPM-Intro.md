@@ -27,7 +27,8 @@ There are two main goals for this blog series. First, provide an intermediate le
 **without** skipping any steps. Often details are omitted because they are either too 'trivial' for experts
 or too 'hard' to explain in the bird-eye-view reviews. 
 Second, describe diffusion-related concepts within the same context. Often, I would be referred
-to different resources to remind myself about VAEs, for instance. Here, diffusion building blocks are gathered in one place.
+to different resources to remind myself about VAEs (Variational Autoencoders),
+for instance. Here, diffusion building blocks are gathered in one place.
 I do hope these goals are met at least partially.
 
 Among many giants there are two, on whose shoulders the narration stands:
@@ -42,7 +43,8 @@ and not in the input image pixel space directly
 In its turn, a much more 'famous' _Stable Diffusion_ model follows the LDM's latent space setup
 (<a href='https://arxiv.org/pdf/2403.03206' target='_blank'>Esser et al., 2024</a>: page 4, second 4, paragraph 2).
 
-The _Stable Diffusion_ model consists of three construction blocks: obviously, DDPM (based on a denoising UNet), but also a text encoder,
+The _Stable Diffusion_ model consists of three construction blocks: obviously, DDPM
+(based on a denoising neural network (<a href='https://en.wikipedia.org/wiki/U-Net' target='_blank'>UNet</a>)), but also a text encoder,
 and an autoencoder (<a href='https://openreview.net/forum?id=zzboa1TtNI&noteId=7MmUrGHtQp' target='_blank'>Perez et al., 2023</a>).
 Autoencoder performs above-mentioned image compression
 (<a href='https://arxiv.org/abs/2112.10752' target='_blank'>Rombach et al., 2022</a>):
@@ -58,13 +60,26 @@ basically corresponds to DDPM applied in the pixel space
 Below, I predominantly focus on Denoising Diffusion Probabilistic Model,
 and both image compression and conditioning on text are out of scope of this blog series.
 
-I start with a brief introduction, where I draw an **obvious** connection with a physical diffusion process. Then, I describe notations and briefly outline a connection with Variational Inference framework. Descriptions of forward and reverse diffusion operators follow. Finally, I summarize key steps for objective function derivation.
-splitting into sections - which are easy which are hard
+I start with a brief introduction (below), where I draw an **obvious** connection with a physical diffusion process. We then
+proceed with [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) chapter, where
+latent variables - key hidden factors controlling our data characteristics - are introduced and searched for
+using Variational Inference (VI)$$^*$$. Within the VI framework, we optimize for approximate probabilities,
+which statistically relate data and latents, thus enabling data generation/reconstruction by generative models, discussed
+in the following section. We discuss VAEs, and through Hierarchical VAEs (HVAEs) work our way up to
+Markovian HVAEs, which are a close DDPM sibling with encoders and decoders
+operating on latent hierarchies with dependence on the previous latent level only.
+With all the building blocks described, we proceed with DDPMs.
+First, we focus on a single forward (noising) and reverse (de-noising) diffusion operators.
+We then formulate an objective function to optimize the reverse process as a whole.
+Finally, we condense the objective function to a 'simple' noise estimation problem.
+Brief summary of the series follows. Notations are provided in [Appendix A]({% post_url 2024-12-31-DDPM-AppendixA %}).
+
+_$$^*$$as of February 2025 this is when the published material ends._
 
 Let me introduce someone special before proceeding - meet ink-tolerant Gold Fish Emma. She greatly helps us
 in the 'Basic Intuition' section, where without her we would lose track of the potential reverse trajectories.
-Emma also accompanies us throughout the blog series asking for clarifications where necessary
-and overall holding me accountable. Regarding her presence in a tank with ink - no worries, she is ink tolerant
+Emma also accompanies us throughout the blog series, asks for clarifications, where necessary
+and, overall, holds me accountable. Regarding her presence in a tank with ink - no worries, she is ink tolerant
 and in fact enjoys changing colors temporarily. Also the diffusion processes we consider are slow,
 which means the water temperature is very comfortable for her (see the relation between diffusion speed and temperature below).
 
@@ -76,13 +91,14 @@ Introduction
 ======
 
 The importance of diffusion models comes from their ability to overcome limitations of GANs and VAEs.
-In particular, their generation process may regress towards the "average" image/sample of the dataset
+In particular, generation process in the latter two models may regress towards the "average" image/sample of the dataset
 (so-called mode collapse) resulting in a low variety of produced outputs
 (<a href="https://www.youtube.com/watch?v=FHeCmnNe0P8&t=3076s>." target="_blank">IntroToDeepLearning.com</a>).
 <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
-formulate advantages of the approach more formally: "Most existing density estimation techniques must
-sacrifice modeling power in order to stay tractable and efficient, and sampling or evaluation are often extremely expensive...
-can learn a fit to any data distribution, but which remains tractable to train, exactly sample from, and evaluate, ...".
+formulate advantages of diffusion models as: "Most existing density estimation techniques must sacrifice
+modeling power in order to stay tractable and efficient," while diffusion models, given the number
+of steps is made large, can "learn a fit to any data distribution" and remain
+"tractable to train, exactly sample from, and evaluate."
 My **obvious intuition** is as follows: it can be easier to approximate a complex data distribution
 by a set of small steps as opposed to learning a complex yet single approximator.
 
@@ -90,23 +106,24 @@ Basic Intuition
 ======
 
 The approach is proposed by <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
-and referred to as Diffusion Probabilistic Models. The authors propose the two-step process of first systematically
-and slowly destroying structure in input and then learning a reverse process to restore structure in data.
+and referred to as Diffusion Probabilistic Models. The authors propose a two-step process: first systematically
+and slowly destroying structure in input data, then learning a reverse process to restore this structure.
 The method uses a Markov chain, which, among many other applications, models Brownian motion.
-For Brownian motion (and a Markov chain), it is true that a future state of the particle (event)
-only depends on the current state of the event. A change of state is controlled by transition probabilities,
-which can be described by Gaussians. Brownian motion is responsible for such a phenomenon as diffusion
+For Brownian motion (and Markov chains), the future state of the particle (event)
+depends only on the current state of the event, not on the history of previous states.
+A change of state is controlled by transition probabilities,
+which can be described by Gaussians. Brownian motion is responsible for the phenomenon of diffusion
 (<a href="https://galton.uchicago.edu/~lalley/Courses/313/WienerProcess.pdf" target="_blank">University of Chicago Statistics Course</a>).
 
 The systematic and slow process of destroying structure in data, referred to as the forward diffusion process,
-corresponds to a set of Gaussian transitions describing Brownian motion. Forward process is a Markov chain
+corresponds to a set of Gaussian transitions describing Brownian motion. The forward process is a Markov chain
 that gradually adds Gaussian noise to the data (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>).
 To continue the **obvious analogy**, think of the input image as initial concentration of paint or ink.
 With time proceeding, initial concentration (by the means of Brownian motion) evens out into a uniform
 distribution of pixels corresponding to a normal distribution.
 
 A single Brownian step of the _forward_ process can be mathematically described as a Gaussian transition
-(<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>), the result of which
+(<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>), where the result
 depends on the previous state of Brownian motion. In other words, **obviously**, how ink is distributed
 at a given diffusion time depends on how it was distributed a time step before. The distribution is described
 by a Gaussian function with a mean depending on a previous step. Notice, it only depends on a previous time
@@ -128,12 +145,15 @@ This means that the reverse process of recovering data structure corresponds to 
 a Gaussian transition probability as well.
 
 So, we need to revert a Brownian step... Unfortunately, unlike the forward case,
-in which we add noise to a previous less noisy image, this, in general, is an intractable problem.
+in which we add noise to a previous less noisy image, this is, in general, an intractable problem.
 Recovering a previous state of the system based on the current observation is an ill-posed problem with multiple solutions:
 multiple Brownian steps from multiple previous states could all produce the same state of the system at an observed diffusion
-time of $$t$$ (see schematic in Figure 2, where alongside with a true particle distribution at $$t-1$$,
-Brownian steps from two other concentrations can result in distribution at time $$t$$). However,
-if a noise-free image, on which our forward diffusion has operated, is known, then there is a closed-form expression
+time of $$t$$ (see schematic in Figure 2, where alongside a true particle distribution at $$t-1$$,
+Brownian steps from two other hypothetical concentrations can result in the distribution at time $$t$$).
+
+This challenge has two aspects: first, the stochasticity of transitions, each of which has a certain probability and hence the uncertainty.
+Second, the systematic direction of denoising: if we don't know what is behind noise, how would we know the correct reverse transition?
+However, if a noise-free image, on which our forward diffusion has operated, is known, then there is a closed-form expression
 for a reverse Brownian step (see <a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>, equation 7).
 While, in general, reverting diffusion steps is intractable: there are just too many system states you could arrive at the
 current step from (see <a href="https://arxiv.org/abs/2209.04747" target="_blank">Croitoru et al., 2023</a>, page 4,
@@ -152,14 +172,13 @@ Formally, “forward process posteriors... are tractable when conditioned on”
 input data (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>;
 think of forward process posteriors as reverse diffusion steps).
 Emma uses strict mathematical logic when helping us to choose correct reverse Brownian steps, which I share further down the text._
-should we decide : strict math logic or memorization on the Emma's side
 
-We have now briefly described the ingredients to train a neural network and then predict images from noise.
+Interestingly enough, we have just briefly described how diffusion models are trained
+under a 'simple' de-noising objective. We have all the ingredients to train a de-noising neural network and then predict images from noise.
 We know the form of the forward noising process and can create de-noised training labels from the reverse process,
 conditioned on input images (<a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, 2022</a>). Concisely,
 to tackle general reverse process intractability, you train on a tractable reverse process, conditioned on input data,
-and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise:
-de-noising U-Net is applied step by step unit we arrive at a Swiss-roll image. You now have sampled an image from the learnt distribution.
+and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise: step by step we reverse the noising process until a Swiss-roll image shows up. You now have sampled an image from the learnt distribution.
 
-We have just concluded the introductory section. Next we cover [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %})
-of diffusion models.
+I hope this high-level sketch is illustrative and suggest to proceed with the [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %})
+chapter, where we start formulating diffusion model building blocks with more mathematical rigor.
