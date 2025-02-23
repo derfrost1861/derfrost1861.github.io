@@ -58,24 +58,26 @@ basically corresponds to DDPM applied in the pixel space
 Below, I predominantly focus on Denoising Diffusion Probabilistic Model,
 and both image compression and conditioning on text are out of scope of this blog series.
 
-I start with a brief introduction (see below), where I draw an **obvious** connection with a physical diffusion process. Then
-proceed with [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) section, where
+I start with a brief introduction (below), where I draw an **obvious** connection with a physical diffusion process. We then
+proceed with [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) chapter, where
 latent variables - key hidden factors controlling our data characteristics - are introduced and searched for
-using Variational Inference (VI). Within the VI framework we optimize for approximate probabilities
-allowing for latent-to-data translation - essential procedure for generative models, which are discussed
-in the following section. We briefly touch Variational Autoencoders, and through Hierarchical VAEs work our way up to
-MHVAEs, which are a close DDPMs sibling. At this point all the builiding blocks are described and I proceed with DDPMs.
-First discuss forward and reverse transitions separately. Then we formyulate and simplify the objective function for learning DDPMs
-finally condesing it to a noise estimation formulation. Brief summary of the the series follows. Notations are provided in the Appendix A.
-..(as of February 2025 this is when the published material ends).. Generative modeling section follows, where
-we remind ourselves about VAEs, and expand 
-I describe notations and briefly outline a connection with Variational Inference framework. Descriptions of forward and reverse diffusion operators follow. Finally, I summarize key steps for objective function derivation.
-splitting into sections - which are easy which are hard
+using Variational Inference (VI)$$^*$$. Within the VI framework, we optimize for approximate probabilities,
+which statistically relate data and latents, thus enabling data generation/reconstruction by generative models, discussed
+in the following section. We discuss VAEs, and through Hierarchical VAEs (HVAEs) work our way up to
+Markovian HVAEs, which are a close DDPM sibling with encoders and decoders
+operating on latent hierarchies with dependence on the previous latent level only.
+With all the building blocks described, we proceed with DDPMs.
+First, we focus on a single forward (noising) and reverse (de-noising) diffusion operators.
+We then formulate an objective function to optimize the reverse process as a whole.
+Finally, we condense the objective function to a 'simple' noise estimation problem.
+Brief summary of the series follows. Notations are provided in [Appendix A]({% post_url 2024-12-31-DDPM-AppendixA %}).
+
+_$$^*$$as of February 2025 this is when the published material ends._
 
 Let me introduce someone special before proceeding - meet ink-tolerant Gold Fish Emma. She greatly helps us
 in the 'Basic Intuition' section, where without her we would lose track of the potential reverse trajectories.
-Emma also accompanies us throughout the blog series asking for clarifications where necessary
-and overall holding me accountable. Regarding her presence in a tank with ink - no worries, she is ink tolerant
+Emma also accompanies us throughout the blog series, asks for clarifications, where necessary
+and, overall, holds me accountable. Regarding her presence in a tank with ink - no worries, she is ink tolerant
 and in fact enjoys changing colors temporarily. Also the diffusion processes we consider are slow,
 which means the water temperature is very comfortable for her (see the relation between diffusion speed and temperature below).
 
@@ -91,9 +93,10 @@ In particular, their generation process may regress towards the "average" image/
 (so-called mode collapse) resulting in a low variety of produced outputs
 (<a href="https://www.youtube.com/watch?v=FHeCmnNe0P8&t=3076s>." target="_blank">IntroToDeepLearning.com</a>).
 <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
-formulate advantages of the approach more formally: "Most existing density estimation techniques must
-sacrifice modeling power in order to stay tractable and efficient, and sampling or evaluation are often extremely expensive...
-can learn a fit to any data distribution, but which remains tractable to train, exactly sample from, and evaluate, ...".
+formulate advantages of diffusion models as: "Most existing density estimation techniques must sacrifice
+modeling power in order to stay tractable and efficient," while diffusion models, given the number
+of steps is made large, can "learn a fit to any data distribution, but which remains
+tractable to train, exactly sample from, and evaluate."
 My **obvious intuition** is as follows: it can be easier to approximate a complex data distribution
 by a set of small steps as opposed to learning a complex yet single approximator.
 
@@ -143,7 +146,7 @@ in which we add noise to a previous less noisy image, this, in general, is an in
 Recovering a previous state of the system based on the current observation is an ill-posed problem with multiple solutions:
 multiple Brownian steps from multiple previous states could all produce the same state of the system at an observed diffusion
 time of $$t$$ (see schematic in Figure 2, where alongside with a true particle distribution at $$t-1$$,
-Brownian steps from two other concentrations can result in distribution at time $$t$$). However,
+Brownian steps from two other hypothetical concentrations can result in distribution at time $$t$$). However,
 if a noise-free image, on which our forward diffusion has operated, is known, then there is a closed-form expression
 for a reverse Brownian step (see <a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>, equation 7).
 While, in general, reverting diffusion steps is intractable: there are just too many system states you could arrive at the
@@ -163,14 +166,12 @@ Formally, “forward process posteriors... are tractable when conditioned on”
 input data (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>;
 think of forward process posteriors as reverse diffusion steps).
 Emma uses strict mathematical logic when helping us to choose correct reverse Brownian steps, which I share further down the text._
-should we decide : strict math logic or memorization on the Emma's side
 
 We have now briefly described the ingredients to train a neural network and then predict images from noise.
 We know the form of the forward noising process and can create de-noised training labels from the reverse process,
 conditioned on input images (<a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, 2022</a>). Concisely,
 to tackle general reverse process intractability, you train on a tractable reverse process, conditioned on input data,
-and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise:
-de-noising U-Net is applied step by step unit we arrive at a Swiss-roll image. You now have sampled an image from the learnt distribution.
+and learn to approximate the distribution of input images. The trained network is then applied in a number of steps to revert the diffusion process and create an image from noise: we reverse step by step until a Swiss-roll image shows up. You now have sampled an image from the learnt distribution.
 
 We have just concluded the introductory section. Next we cover [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %})
 of diffusion models.
