@@ -76,10 +76,6 @@ which is turned back in time, hence the transition from latent level $i+1$ to $i
 - $$p_\theta(\mathbf{x}_0)$$ - approximated data distribution; corresponds to the learnt reverse process marginalized over latents
 $$p_\theta(\mathbf{x}_0) = \int d\mathbf{z}_{1:T} p_\theta(\mathbf{z}_{1:T}, \mathbf{x}_0)$$; evidence with respect to latents $\mathbf{z}$. Intractable as its true counterpart $p(\mathbf{x}_0)$;
 
-cite Croitoru that p theta is intractable in a relevant section - reverse diffusion process most likely 
-
-what are tractable MLE models
-
 Distinction between $p(\cdot)$ and $q(\cdot)$
 ------
 

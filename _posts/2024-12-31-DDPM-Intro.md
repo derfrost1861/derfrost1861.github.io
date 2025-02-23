@@ -58,7 +58,18 @@ basically corresponds to DDPM applied in the pixel space
 Below, I predominantly focus on Denoising Diffusion Probabilistic Model,
 and both image compression and conditioning on text are out of scope of this blog series.
 
-I start with a brief introduction, where I draw an **obvious** connection with a physical diffusion process. Then, I describe notations and briefly outline a connection with Variational Inference framework. Descriptions of forward and reverse diffusion operators follow. Finally, I summarize key steps for objective function derivation.
+I start with a brief introduction (see below), where I draw an **obvious** connection with a physical diffusion process. Then
+proceed with [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) section, where
+latent variables - key hidden factors controlling our data characteristics - are introduced and searched for
+using Variational Inference (VI). Within the VI framework we optimize for approximate probabilities
+allowing for latent-to-data translation - essential procedure for generative models, which are discussed
+in the following section. We briefly touch Variational Autoencoders, and through Hierarchical VAEs work our way up to
+MHVAEs, which are a close DDPMs sibling. At this point all the builiding blocks are described and I proceed with DDPMs.
+First discuss forward and reverse transitions separately. Then we formyulate and simplify the objective function for learning DDPMs
+finally condesing it to a noise estimation formulation. Brief summary of the the series follows. Notations are provided in the Appendix A.
+..(as of February 2025 this is when the published material ends).. Generative modeling section follows, where
+we remind ourselves about VAEs, and expand 
+I describe notations and briefly outline a connection with Variational Inference framework. Descriptions of forward and reverse diffusion operators follow. Finally, I summarize key steps for objective function derivation.
 splitting into sections - which are easy which are hard
 
 Let me introduce someone special before proceeding - meet ink-tolerant Gold Fish Emma. She greatly helps us

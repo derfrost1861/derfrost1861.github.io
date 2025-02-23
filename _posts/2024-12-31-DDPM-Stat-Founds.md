@@ -997,8 +997,9 @@ p_\theta(\mathbf{x}_0) = \int d\mathbf{z}\ p_\theta(\mathbf{x}_0,\mathbf{z}) = \
 \end{align}
 $$
 
-Recall our example of a neural network, which has a single hidden layer with non-linear activations,
-used earlier to show intractability of evidence: since then only the notation has changed.
+Recall our example of a neural network, which has a single hidden layer with non-linear activations?
+It shows intractability of evidence $$p(\mathbf{x}_0)$$. $$p_\theta(\mathbf{x}_0)$$
+is, obviously, intractable as well, since the only difference is in $$\theta$$-notation.
 
 We do not know the true data distribution
 $$q(\mathbf{x}_0)$$ (or $$p(\mathbf{x}_0)$$: see [Appendix A]({% post_url 2024-12-31-DDPM-AppendixA %}) for the full list of notations)
