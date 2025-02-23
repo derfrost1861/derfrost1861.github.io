@@ -27,7 +27,8 @@ There are two main goals for this blog series. First, provide an intermediate le
 **without** skipping any steps. Often details are omitted because they are either too 'trivial' for experts
 or too 'hard' to explain in the bird-eye-view reviews. 
 Second, describe diffusion-related concepts within the same context. Often, I would be referred
-to different resources to remind myself about VAEs, for instance. Here, diffusion building blocks are gathered in one place.
+to different resources to remind myself about VAEs (Variational Autoencoders),
+for instance. Here, diffusion building blocks are gathered in one place.
 I do hope these goals are met at least partially.
 
 Among many giants there are two, on whose shoulders the narration stands:
@@ -42,7 +43,8 @@ and not in the input image pixel space directly
 In its turn, a much more 'famous' _Stable Diffusion_ model follows the LDM's latent space setup
 (<a href='https://arxiv.org/pdf/2403.03206' target='_blank'>Esser et al., 2024</a>: page 4, second 4, paragraph 2).
 
-The _Stable Diffusion_ model consists of three construction blocks: obviously, DDPM (based on a denoising UNet), but also a text encoder,
+The _Stable Diffusion_ model consists of three construction blocks: obviously, DDPM
+(based on a denoising neural network (<a href='https://en.wikipedia.org/wiki/U-Net' target='_blank'>UNet</a>)), but also a text encoder,
 and an autoencoder (<a href='https://openreview.net/forum?id=zzboa1TtNI&noteId=7MmUrGHtQp' target='_blank'>Perez et al., 2023</a>).
 Autoencoder performs above-mentioned image compression
 (<a href='https://arxiv.org/abs/2112.10752' target='_blank'>Rombach et al., 2022</a>):
@@ -89,14 +91,14 @@ Introduction
 ======
 
 The importance of diffusion models comes from their ability to overcome limitations of GANs and VAEs.
-In particular, their generation process may regress towards the "average" image/sample of the dataset
+In particular, generation process in the latter two models may regress towards the "average" image/sample of the dataset
 (so-called mode collapse) resulting in a low variety of produced outputs
 (<a href="https://www.youtube.com/watch?v=FHeCmnNe0P8&t=3076s>." target="_blank">IntroToDeepLearning.com</a>).
 <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
 formulate advantages of diffusion models as: "Most existing density estimation techniques must sacrifice
 modeling power in order to stay tractable and efficient," while diffusion models, given the number
-of steps is made large, can "learn a fit to any data distribution, but which remains
-tractable to train, exactly sample from, and evaluate."
+of steps is made large, can "learn a fit to any data distribution" and remain
+"tractable to train, exactly sample from, and evaluate."
 My **obvious intuition** is as follows: it can be easier to approximate a complex data distribution
 by a set of small steps as opposed to learning a complex yet single approximator.
 
@@ -105,22 +107,23 @@ Basic Intuition
 
 The approach is proposed by <a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., (2015)</a>
 and referred to as Diffusion Probabilistic Models. The authors propose a two-step process: first systematically
-and slowly destroying structure in input, then learning a reverse process to restore structure in data.
+and slowly destroying structure in input data, then learning a reverse process to restore this structure.
 The method uses a Markov chain, which, among many other applications, models Brownian motion.
-For Brownian motion (and a Markov chain), it is true that a future state of the particle (event)
-only depends on the current state of the event. A change of state is controlled by transition probabilities,
-which can be described by Gaussians. Brownian motion is responsible for such a phenomenon as diffusion
+For Brownian motion (and Markov chains), the future state of the particle (event)
+depends only on the current state of the event, not on the history of previous states.
+A change of state is controlled by transition probabilities,
+which can be described by Gaussians. Brownian motion is responsible for the phenomenon of diffusion
 (<a href="https://galton.uchicago.edu/~lalley/Courses/313/WienerProcess.pdf" target="_blank">University of Chicago Statistics Course</a>).
 
 The systematic and slow process of destroying structure in data, referred to as the forward diffusion process,
-corresponds to a set of Gaussian transitions describing Brownian motion. Forward process is a Markov chain
+corresponds to a set of Gaussian transitions describing Brownian motion. The forward process is a Markov chain
 that gradually adds Gaussian noise to the data (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>).
 To continue the **obvious analogy**, think of the input image as initial concentration of paint or ink.
 With time proceeding, initial concentration (by the means of Brownian motion) evens out into a uniform
 distribution of pixels corresponding to a normal distribution.
 
 A single Brownian step of the _forward_ process can be mathematically described as a Gaussian transition
-(<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>), the result of which
+(<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>), where the result
 depends on the previous state of Brownian motion. In other words, **obviously**, how ink is distributed
 at a given diffusion time depends on how it was distributed a time step before. The distribution is described
 by a Gaussian function with a mean depending on a previous step. Notice, it only depends on a previous time
@@ -142,12 +145,15 @@ This means that the reverse process of recovering data structure corresponds to 
 a Gaussian transition probability as well.
 
 So, we need to revert a Brownian step... Unfortunately, unlike the forward case,
-in which we add noise to a previous less noisy image, this, in general, is an intractable problem.
+in which we add noise to a previous less noisy image, this is, in general, an intractable problem.
 Recovering a previous state of the system based on the current observation is an ill-posed problem with multiple solutions:
 multiple Brownian steps from multiple previous states could all produce the same state of the system at an observed diffusion
-time of $$t$$ (see schematic in Figure 2, where alongside with a true particle distribution at $$t-1$$,
-Brownian steps from two other hypothetical concentrations can result in distribution at time $$t$$). However,
-if a noise-free image, on which our forward diffusion has operated, is known, then there is a closed-form expression
+time of $$t$$ (see schematic in Figure 2, where alongside a true particle distribution at $$t-1$$,
+Brownian steps from two other hypothetical concentrations can result in the distribution at time $$t$$).
+
+This challenge has two aspects: first, the stochasticity of transitions, each of which has a certain probability and hence the uncertainty.
+Second, the systematic direction of denoising: if we don't know what is behind noise, how would we know the correct reverse transition?
+However, if a noise-free image, on which our forward diffusion has operated, is known, then there is a closed-form expression
 for a reverse Brownian step (see <a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>, equation 7).
 While, in general, reverting diffusion steps is intractable: there are just too many system states you could arrive at the
 current step from (see <a href="https://arxiv.org/abs/2209.04747" target="_blank">Croitoru et al., 2023</a>, page 4,
