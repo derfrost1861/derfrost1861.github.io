@@ -883,8 +883,8 @@ data distribution and sample from it, thus learning a generative model'. In othe
 the more effectively our latents capture the properties of the data, the better we can
 reconstruct/generate new observations. For instance, in our linear operator example for Variational Inference
 we have estimated the coefficients transforming data to latents - $$\phi=(\frac{1}{k},-c)$$.
-By applying our forward modeling operator we perfectly reconstruct the existing data samples.
-Creating a new observation is simply a matter of choosing a latent value from the region we learned through 
+We can perfectly reconstruct existing observations by applying our forward modeling operator
+to their encoded versions, while creating a new observation is simply a matter of choosing a latent value from the region we learned through 
 $$\phi$$ and applying our forward model.
 
 The opposite direction of converting latents to data can be learnt as well. For instance, this is the case
