@@ -16,7 +16,7 @@ Here, notations used in the DDPM blog series are defined. Please keep in mind, s
 
 - $$\mathbf{x}_0$$ - noise-free input images.
 Together input images form a dataset $$\mathbf{x}_0=\{\mathbf{x}_0^i\}_{i=0:N-1}$$ - a collection of observation points $$\mathbf{x}_0^i$$ (one point - one image) 
-with $$i=0:N-1$$ denoting a sample number. $N$ is how many images we have overall. Input images have three color channels (e.g., RGB) and a two-dimensional pixel space (e.g., $$\mathbf{x}_0^i=\{x\}_{jk}^{i}$$, where $$j=0:\text{height}-1$$ and $$k=0:\text{width}-1$$);
+with $$i=0:N-1$$ denoting a sample number. $N$ is how many samples or observations (e.g., images) we have overall. Input images have three color channels (e.g., RGB) and a two-dimensional pixel space (e.g., $$\mathbf{x}_0^i=\{x\}_{jk}^{i}$$, where $$j=0:\text{height}-1$$ and $$k=0:\text{width}-1$$);
 
 - $\mathbf{z}$ - latent variables; depending on the context, can denote both: single-level latent (e.g., in VAE) and an hierarchy;
 - $\mathbf{z}_i$ - single latent level: for models with hierarchies of latents index $i$ denotes the level of the latent ($i=0:T$);
@@ -49,9 +49,9 @@ In particular:
   $q_\phi(\mathbf{z}_{i+1} \vert \mathbf{z}_i)$ used in MHVAE (see below));
 
 - $$q(\mathbf{z}_{i} \vert \mathbf{z}_{i+1})$$ - true diffusion forward process posterior (denoising); denotes true forward diffusion process,
-which is turned back in time, hence the transition from latent level $i+1$ to $i$, and is intractable (see Reverse Diffusion Process section);
+which is turned back in time, hence the transition from latent level $i+1$ to $i$, and is intractable (see Reverse Diffusion Process section (working progress and not published as of Feb 2025));
   - $$q(\mathbf{z}_{i} \vert \mathbf{z}_{i+1}, \mathbf{x}_0)$$ - same as above except conditioned on an input data sample $\mathbf{x}_0$;
-  conditioning on input makes the quantity tractable (see Reverse Diffusion Process section); referred to as forward process posterior in the text;
+  conditioning on input makes the quantity tractable (see Reverse Diffusion Process section (working progress and not published as of Feb 2025)); referred to as forward process posterior in the text;
 
 - $q_\phi(\mathbf{z} \vert \mathbf{x}_0)$ - approximate latent posterior density given observations $\mathbf{x}_0$. Corresponds to a neural network with weights $\phi$; denotes VAE's encoder;
   - $$q_\phi(\mathbf{z}_{i+1} \vert \mathbf{z}_{i})$$ - same as above, except denoting the posterior density of the next level ($i+1$) latent given the previous level ($i$) latent; used in MHVAE's encoder;
@@ -59,19 +59,19 @@ which is turned back in time, hence the transition from latent level $i+1$ to $i
 - $p_\theta(\mathbf{x}_0 \vert \mathbf{z})$ - approximate likelihood given latents $\mathbf{z}$. Corresponds to a neural network with weights $\theta$; denotes VAE's decoder;
   - $$p_\theta(\mathbf{z}_{i} \vert \mathbf{z}_{i+1})$$ - same as above, except denoting the likelihood of the previous level ($i$) latent given the higher level ($i+1$) latent; denotes MHVAE's decoder;
 
-- $g(\mathbf{z})$ - aggregate approximate posterior latent distribution; aims to reproduce $p(\mathbf{z} \vert \mathbf{x}_0)$; optimal approximation is denoted by $^*$; only used once in Variational Inference section (changed from $q(\mathbf{z})$ (as in <a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>) to $g(\mathbf{z})$ for consistency);
+- $g(\mathbf{z})$ - aggregate approximate posterior latent distribution; aims to reproduce $p(\mathbf{z} \vert \mathbf{x}_0)$; optimal approximation is denoted by $^*$; only used once in [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) chapter (changed from $q(\mathbf{z})$ (as in <a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>) to $g(\mathbf{z})$ for consistency);
 
 - $p(\mathbf{z})$ - prior probability density of the latent variable $\mathbf{z}$; typically, corresponds to a zero-mean unit-variance Gaussian; used in VAE; 
   - $p(\mathbf{z}_T)$ - same as above but a probability distribution of the deepest level latent (typically, Gaussian); used in DDPM and MHVAE;
 
 - $q(\mathbf{x}_0)$ - true data probability density (notation by <a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>); the quantity we aim to learn (it is unknown to us); our dataset $\mathbf{x}_0$ corresponds to a finite set of its samples $\mathbf{x}_0 \sim q(\mathbf{x}_0)$;
 
-- $p(\mathbf{x}_0)$ - true data probability density as $q(\mathbf{x}_0)$, but infers latents' marginalization $\int d\mathbf{z}\ p(\mathbf{x}_0,\mathbf{z})$ and, thus, corresponds to evidence; intractable due to the high-dimensional integration over all possible values of all possible latent variables (see Variational Inference section);
+- $p(\mathbf{x}_0)$ - true data probability density as $q(\mathbf{x}_0)$, but infers latents' marginalization $\int d\mathbf{z}\ p(\mathbf{x}_0,\mathbf{z})$ and, thus, corresponds to evidence; intractable due to the high-dimensional integration over all possible values of all possible latent variables (see [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) chapter);
 
 - $q(\mathbf{z}_1, \mathbf{z}_2, ... , \mathbf{z}_T \vert \mathbf{x}_0)$ - forward diffusion process;
   - $q_\phi(\mathbf{z}_1, \mathbf{z}_2, ... , \mathbf{z}_T \vert \mathbf{x}_0)$ - data encoding process in MHVAE;
 
-- $p_\theta(\mathbf{z}_1, \mathbf{z}_2, ... , \mathbf{z}_T, \mathbf{x}_0)$ - joint distribution between latents and data, which corresponds to a generative model aka process in DDPM and MHVAE (see Generative Model section);
+- $p_\theta(\mathbf{z}_1, \mathbf{z}_2, ... , \mathbf{z}_T, \mathbf{x}_0)$ - joint distribution between latents and data, which corresponds to a generative model aka process in DDPM and MHVAE (see Generative Model section (working progress and not published as of Feb 2025));
   
 - $$p_\theta(\mathbf{x}_0)$$ - approximated data distribution; corresponds to the learnt reverse process marginalized over latents
 $$p_\theta(\mathbf{x}_0) = \int d\mathbf{z}_{1:T} p_\theta(\mathbf{z}_{1:T}, \mathbf{x}_0)$$; evidence with respect to latents $\mathbf{z}$. Intractable as its true counterpart $p(\mathbf{x}_0)$;
@@ -126,12 +126,13 @@ Since samples are input in the forward noising process, notation of $q(\cdot)$ i
 
 Bayesian Inference notations in the context of MLE
 ------
-As mentioned in the 'Warning' in the Variational Inference section, Bayesian Inference notations above are defined with respect to latents $$\mathbf{z}$$. In particular, $$p(\mathbf{x}_0)$$ and its learnt counterpart $$p_\theta(\mathbf{x}_0)$$ correspond to evidence:
+As mentioned in 'A note on why evidence in ELBO corresponds to likelihood in MLE'
+in [Statistical Foundations]({% post_url 2024-12-31-DDPM-Stat-Founds %}) chapter, Bayesian Inference notations above are defined with respect to latents $$\mathbf{z}$$. In particular, $$p(\mathbf{x}_0)$$ and its learnt counterpart $$p_\theta(\mathbf{x}_0)$$ correspond to evidence:
 result of marginalization over latents $$\int d\mathbf{z}\ p(\mathbf{x}_0,\mathbf{z})$$ and
 $$\int d\mathbf{z}\ p_\theta(\mathbf{x}_0,\mathbf{z})$$ correspondingly. At the same time, with respect to learnt parameters $$\theta$$,
 $$p_\theta(\mathbf{x}_0)$$ is likelihood: data probability given a set of neural network parameters. By
 maximizing the Evidence Lower Bound (ELBO), we obviously maximize evidence (with respect to latents),
-which with respect to $$\theta$$ is likelihood - hence, the MLE objective (see MLE section).
+which with respect to $$\theta$$ is likelihood - hence, the MLE objective (see 'A note on why evidence in ELBO corresponds to likelihood in MLE').
 
 Additional notation clarification for VAE, MHVAE and DDPM
 ---------
@@ -176,7 +177,3 @@ which is Gaussian for DDPM. In MHVAE, the deepest latent $$\mathbf{z}_T$$
 is sampled from $$q_\phi(\mathbf{z}_T \vert \mathbf{z}_{T-1})$$
 (output of the encoder applied to a previous-to-the-deepest latent $\mathbf{z}_{T-1}$),
 which serves as the prior for the generative process.
-
-The joint distribution
-pθ(x0:T ) is called the reverse process
-Ho Johnathan - adjust throughout the text
