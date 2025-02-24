@@ -9,7 +9,7 @@ tags:
 Learning data distribution involves identifying 'key factors', which inherently 'control'
 the characteristics of our observations. The controlling relationship can either be statistical,
 or based on physical laws, where we understand precisely how these factors manifest in data.
-We discuss these 'key factors', commonly referred to as latent variables, in detail below.
+We discuss these 'key factors', commonly referred to as **latent variables**, in detail below.
 First, we discuss their estimation from data using Variational Inference (VI). Then, we describe the opposite
 direction - data reconstruction and generation from latent variables.
 <!-- Learning data distribution involves finding 'key factors', which inherently 'control' characteristics of our observations.
@@ -22,14 +22,16 @@ Latent Space
 ======
 
 Diffusion models are latent variable models (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>; page 2).
-It is not only true when diffusion happens in the latent space of a Variation Autoencoder
+It is not only true when diffusion happens in the latent space of a Variational Autoencoder
 (for instance, in the Latent Diffusion case
 (<a href='https://arxiv.org/abs/2112.10752' target='_blank'>Rombach et al., 2022</a>))
 but in general for Denoising Diffusion Probabilistic models.
 Let's denote our training (or observed) data as $$\mathbf{x}_0$$
-(in Figure 1 those would be noise-free cute ca... sorry... schematic Swiss-roll images at $$t=0$$)
+(in Figure 1 in the [Introduction chapter]({% post_url 2024-12-31-DDPM-Intro %})
+those would be noise-free cute ca... sorry... schematic Swiss-roll images at $$t=0$$)
 and its noised versions as $$\mathbf{z}_t$$ with $$t=1:T$$. In particular, $$\mathbf{z}_t$$ corresponds
-to inputs $$\mathbf{x}_0$$ with added noise, which comes from $$t$$ Brownian jumps.
+to inputs $$\mathbf{x}_0$$ with added noise, which comes from $$t$$ Brownian jumps
+(see the full notation list in [Appendix A]({% post_url 2024-12-31-DDPM-AppendixA %})).
 These noised versions make up the latent space of a diffusion model
 (<a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>; page 2).
 Some authors instead of $$\mathbf{z}_t$$ use $$\mathbf{x}_t$$ to highlight a connection with input,
@@ -40,7 +42,7 @@ $$\mathbf{z}$$.
 
 What is a latent space? I, personally, really like the explanation provided in this
 video - <a href="https://www.youtube.com/watch?v=3G5hWM6jqPk>">MIT 6.S191: Deep Generative Modeling</a> (7:53 time stamp).
-The analogy for latent space variables would be true objects (or true hidden factors), which cast shadows on the wall (or describe a physical process, which we register with some sort of sensors; Figure 3). In this case, the shadows would correspond to our observed data. Typically, latent variable would have less dimensions than the data we would like to describe. If we can estimate latent variables, we then can model complex distributions of observed data samples: if you know the object, you can predict its shadow.
+The analogy for latent space variables would be true objects (or true hidden factors), which cast shadows on the wall (or describe a physical process, which we register with some sort of sensors; Figure 1). In this case, the shadows would correspond to our observed data. Typically, latent variable would have less dimensions than the data we would like to describe. If we can estimate latent variables, we then can model complex distributions of observed data samples: if you know the object, you can predict its shadow.
 
 <blockquote>
 <p><br/><b>
@@ -62,11 +64,13 @@ _Figure 1: If you know true object shapes (latent variables) you can predict its
 Variational Inference
 ======
 
-To have an effective image generator we need to find "true hidden" factors describing a variety of swiss-roll schematics $$\mathbf{x}_0$$ we have in our possession.
-We have a state of our hidden factors $$\mathbf{z}$$ before and after training. Before training, latent space $$\mathbf{z}$$ naturally does not incorporate any
-knowledge about $$\mathbf{x}_0$$. After training, we hope $$\mathbf{z}$$ becomes a lower dimensional compressed representation
-of data. Besides searching for hidden factors, we can also search for the model, i.e., equation/precise law of physics/approximate relationship based on correlation/regression,
-which connects them to observations.
+To have an effective image generator, we need to find "true hidden" factors describing a variety of
+Swiss-roll schematics $$\mathbf{x}_0$$ we have in our possession. We have a state of our hidden factors $$\mathbf{z}$$
+before and after seeing the data. Before, latent space $$\mathbf{z}$$ naturally does not incorporate any
+knowledge about $$\mathbf{x}_0$$. After seeing the data and estimating the latents,
+we hope $$\mathbf{z}$$ becomes a lower-dimensional compressed representation
+of data. Besides searching for hidden factors, we can also search for the model, i.e.,
+equation/precise law of physics/approximate relationship based on correlation/regression, which connects them to observations.
 
 Formally, to obtain the latents and the model, the problem is posed in a Bayesian inference framework
 (<a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>: page 2):
@@ -88,7 +92,7 @@ Imagine you have an operator, which matches latents to observations: the better 
 more accurate latents and an operator, the higher the likelihood will be.
 The prior in its turn, corresponds to our knowledge about latents before the inference, e.g.,
 in the case of diffusion the hierarchy of latents $$\mathbf{z}=(\mathbf{z}_1,\mathbf{z}_2,...,\mathbf{z}_T)$$ is described by Gaussian transitions.
-Inference in a Bayesian framework is conducted through computing the posterior$^*$
+Inference in a Bayesian framework is conducted through computing the posterior
 (equation 2 in <a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>: page 5)
 
 $$
@@ -170,11 +174,12 @@ We could explore different text models and benefit from higher computational eff
 Obviously, diffusion modeling belongs to the second case
 (in fact, <a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, (2022)</a> refers to DDPMs as variational diffusion models).
 
-
 If you are already familiar with the topic, please feel free to skip the expandable boxes below.
-Otherwise, I believe it's instructive to show how latents can be estimated given observations
-and a known linear forward modeling operator using Inverse Theory framework. Then, I proceed
-with MCMC estimation of latents, MCMC linear regression, and finally arrive at Variational Inference -
+Otherwise, I believe it's instructive to start with an example not directly related to MCMC and VI.
+The example shows how latents can be estimated given observations
+if a forward modeling operator is known, which is the case in classical Inverse Theory. Then, I proceed
+with MCMC estimation of latents, which allows for their probabilistic characterization.
+Then I discuss linear regression using MCMC, and finally arrive at Variational Inference -
 all using the same linear operator example.
 
 {% include expandable-box.html 
@@ -213,7 +218,7 @@ a variable $$z^{i=j}$$, which is responsible for a data sample $$i=j$$:
 
 $$
 \begin{align}
-\frac{\partial MSE}{\partial z^j} = -2k(x_0^j - (k \cdot z^j + c))
+\frac{\partial \text{MSE}}{\partial z^j} = -2k(x_0^j - (k \cdot z^j + c))
 \end{align}
 $$
 
@@ -229,7 +234,14 @@ and this condition should be true for all $$z^i$$`s to achieve a minimum. In oth
 describe our observation as accurately as possible. It so happens in our example that each observation has its own independent latent.
 A vector of values $$z^i$$, which minimize the MSE, is also referred to as a least-squares solution.
 
-To be honest, as goldfish Emma suggests, we all could have guessed the obvious solution $$z = \frac{1}{k}(x_0 - c)$$
+To be honest, as goldfish Emma suggests, we all could have guessed the obvious solution
+
+$$
+\begin{align}
+z = \frac{1}{k}(x_0 - c)
+\end{align}
+$$
+
 right away. But the main point here is to familiarize ourselves with the Inverse Theory framework.  
 
 As you can see, Inverse Theory framework is pretty straightforward and provides a single best (in terms of MSE) solution.
@@ -311,11 +323,13 @@ $$
 $$
 
 Let me emphasize: *we never explicitly search for the inverse relationship above* (we do in Variational Inference). We sample $$z$$'s along this line.
-In other words, if our MCMC random walk has been properly setup, we would be sampling the latents, which lie along this line (of slope $$\frac{1}{k}$$ and bias $$-\frac{c}{k}$$). While walking, we gather a set of probable latents - a set of samples, which serves as
+In other words, if our MCMC random walk has been properly set up, we would be sampling the latents, which lie along this line (of slope $$\frac{1}{k}$$ and bias $$-\frac{c}{k}$$). While walking, we gather a set of probable latents - a set of samples, which serves as
 our approximation to the posterior probability distribution. For each single observation sample $$x_0^i$$,
 we have several $$z^{i,l}$$'s, which follow a Gaussian distribution. $$l$$, here, is another index denoting latent
-value $$z^i$$ variation per data example $$x_0^i$$. There will be a sample of maximum
-posterior probability (often referred to as MAP - Maximum A Posteriori point (<a href='https://www.oden.utexas.edu/media/reports/2012/1218.pdf' target='_blank'>Bui-Thanh, 2012</a>)) and a bunch of others, by looking at which we can get a feel on how a posterior looks like.
+value $$z^i$$ variation per data example $$x_0^i$$.
+This is where the stochasticity kicks in: instead of a single least-squares solution, we now have a collection
+of latent samples, which are probable for a given data observation point.
+There will be a sample of maximum posterior probability (often referred to as MAP - Maximum A Posteriori point (<a href='https://www.oden.utexas.edu/media/reports/2012/1218.pdf' target='_blank'>Bui-Thanh, 2012</a>)) and a bunch of others, by looking at which we can get a feel for how a posterior looks like.
 
 Obviously, we would like to find the 'combined' posterior of latents given all the observations.
 Under the _mean-field assumption_ (<a href='https://arxiv.org/abs/1601.00670' target='_blank'>Blei et al., 2018</a>: equation 15)
@@ -331,11 +345,11 @@ $$
 \end{align}
 $$
 
-The assumption is sometimes used in VAE's encoders
+The same assumption can be used in VAE's encoders
 (<a href='https://arxiv.org/pdf/1711.05597' target='_blank'>Zhang et al., 2018</a>: page 14, left column, paragraph 7)
 when 'no covariance' (in other words, diagonal covariance matrix is used) between latents is involved
 (as we see further, for diffusion models the process of encoding has 'no covariance' as well).
-Another handy assumption is that individual observed data points are picked independently from each other
+We also assume individual observed data points are picked independently from each other
 (e.g., see <a href='https://arxiv.org/pdf/1312.6114' target='blank'>Kingma and Welling, 2013</a>: page 3, paragraph 3).
 
 In plain language the assumptions mean: each data sample, randomly subselected (i.e., without any particular grouping, which could cause biases)
@@ -347,8 +361,8 @@ Obviously, we satisfy both of the assumptions perfectly with our simple linear e
 and so are $$z^i$$'s, which are obtained from each observation by subtraction of a scalar $$c$$ and multiplication by a factor of $$1/k$$.
 
 What does it mean for us in practice?
-If we take the log of the expression above, we end up with the same MSE objective as in the Inverse Theory example. Keep in mind however,
-now we are not constrained by a single least-squares solution.
+If we take the log of the expression above, we end up with the same MSE objective as in the Inverse Theory example. Keep in mind, however,
+now we are not constrained by a single least-squares solution anymore.
 
 "%}
 
@@ -451,7 +465,7 @@ content="
 By definition, the expected value of a function $$g$$ of a random variable $$\mathbf{z}$$ is given by the integral
 $$\mathbb{E}[g(\mathbf{Z})]=\int d\mathbf{z} f(\mathbf{z}) g(\mathbf{z})$$, where $$f(\mathbf{z})$$
 is a probability density function of $$\mathbf{z} \in \mathbf{Z}$$
-(<a href='https://bookdown.org/pkaldunn/DistTheory/Expectation.html#ExpectationFunction' target='_blank'>3.2 Expectation of a function of a random variable</a>). Capital $$\mathbf{Z}$$ denotes a space (or set) of all possible values variable $$\mathbf{z}$$
+(<a href='https://bookdown.org/pkaldunn/DistTheory/Expectation.html#ExpectationFunction' target='_blank'>Expectation of a function of a random variable</a>). Capital $$\mathbf{Z}$$ denotes a space (or set) of all possible values variable $$\mathbf{z}$$
 can take. $$f(\mathbf{z})$$ describes a probability of each value.
 In other words, we sample values from their probability density $$\mathbf{z} \sim f(\mathbf{z})$$.
 To avoid confusion, let's stick to the notation of $$\mathbb{E}[g(\mathbf{z})]$$ (ignoring capital $$\mathbf{Z}$$),
@@ -486,11 +500,12 @@ for the full list of notations)).
 
 In terms of the **obvious intuition**, expectation corresponds to the integral of a function $$g(\mathbf{z})$$,
 weighted by the probability density function $$f(\mathbf{z})$$ of its input arguments $$\mathbf{z}$$.
-Each value $$\mathbf{z}$$ input to $$g(\mathbf{z})$$ brings its corresponding probability-based weight. In other words, the focus is on values, which have higher probabilities. On the contrary, if $$f(\mathbf{z})$$ would be equal to $1$ for all values,
+Each value $$\mathbf{z}$$ input to $$g(\mathbf{z})$$ brings its corresponding probability-based weight. In other words, the focus is on values, which have higher probabilities. In contrast, if $$f(\mathbf{z})$$ were equal to $1$ for all values,
 we would simply average $$g(\mathbf{z})$$ values.
-Obviously, the better job we do approximating the posterior, the higher the expectations in our objective function would be.
-Hence, we would not only focus on highly probable $$\mathbf{z}$$ but also make sure the approximate posterior itself
-$$\log(q_\phi(\mathbf{z} \vert \mathbf{x}_0))$$ finds more or less correct latent factors for observations $$\mathbf{x}_0$$
+
+In regards to posterior approximation, the better our posterior estimates are, the higher the expectations in our objective function will be.
+Hence, we not only focus on highly probable $$\mathbf{z}$$ but also make sure the approximate posterior itself
+$$\log(q_\phi(\mathbf{z} \vert \mathbf{x}_0))$$ finds approximately correct latent factors for observations $$\mathbf{x}_0$$
 (see 'Variational Inference for posterior approximation: linear operator example' and the following sections).
 
 **Expectation in practice**
@@ -498,7 +513,7 @@ $$\log(q_\phi(\mathbf{z} \vert \mathbf{x}_0))$$ finds more or less correct laten
 While above we define the expectation in terms of the integrals, in practice, an average across several samples from the
 distribution is computed. This is especially true for the data distribution $$q(\mathbf{x}_0)$$, which we do not know.
 We only know samples from it $$\mathbf{x}_0 \sim q(\mathbf{x}_0)$$, which comprise our dataset.
-We won't be able to compute the integral $$\mathbb{E}_{\mathbf{x}_0}[\cdot] = \int d\mathbf{x}_0 q(\mathbf{x}_0)\ [\cdot]$$.
+We won't be able to compute the integral $$\mathbb{E}_{\mathbf{x}_0}[\cdot] = \int d\mathbf{x}_0\ q(\mathbf{x}_0)\ [\cdot]$$.
 The same applies to the posterior: we take several samples of $$\mathbf{z} \sim q(\mathbf{z} \vert \mathbf{x}_0)$$ and average
 expectation argument across them.
 By the Law of Large Numbers, as we increase the number of samples, this average converges to the true expectation.
@@ -509,11 +524,9 @@ form, the expectation integral is not explicitly taken when computing the object
 
 <!-- The same notation pattern can be found in https://www.youtube.com/watch?v=1bpQ0QDPGuI&t=1646s in support to the above --> 
 
--- tie the above expectation with the expectation in the later sections . mention we do not integrate over $$q(\mathbf{x}_0)$$ - sum of samples (intractability 2 and 1)
-
 Since KL-divergence cannot be computed due to the $$\log(p(\mathbf{x}_0))$$ term, we optimize an alternative function: Evidence Lower Bound (ELBO) (<a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>; equation 13). ELBO equals negative KL-divergence plus $$\log(p(\mathbf{x}_0))$$, which is independent from $$q_{\phi}(\cdot)$$. The latter is important since
 $$\log(p(\mathbf{x}_0))$$ can be treated as a constant during our search for an optimal posterior approximator $$q_{\phi}(\cdot)$$.
-(<a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>: page 6).Let's add the terms together (<a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, 2022</a>; equation 4):
+(<a href="https://arxiv.org/abs/1601.00670" target="_blank">Blei et al., 2018</a>: page 6). Let's add the terms together (<a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, 2022</a>; equation 4):
 
 $$
 \begin{align}
@@ -599,18 +612,19 @@ $$
 \end{align}
 $$
 
-In fact, this expression is nothing but the objective function for the VAE (see the corresponding section for more details).
+In fact, this expression is nothing but the objective function for the VAE (see next chapter for more details).
 The first term is an expected likelihood. The second term measures dissimilarity between the estimated posterior and a prior
 knowledge about it. Thus, the variational objective mirrors the typical balance between likelihood, which encourages latent variable configurations
 explaining the observed data well, and prior, which encourages the densities close to the prior 
 (<a href='https://arxiv.org/abs/1601.00670' target='_blank'>Blei et al., 2018</a>).
 
 Moreover, ELBO does not involve the intractable term $$\log(p(\mathbf{x}_0))$$
-and its maximization corresponds to minimization of KL-divergence between $$q_\phi(\cdot)$$ and $$p(\cdot)$$ -
-$$D_{\text{KL}}(q_\phi(\mathbf{z}|\mathbf{x}_0)||p(\mathbf{z|\mathbf{x}_0}))$$. KL-divergence is a non-negative function.
-Hence, to maximize ELBO we need to subtract the least quantity possible. And thus, when we search for neural network
-parameters $$\phi$$ maximizing the ELBO, we, at the same time, obtain a better match to the true posterior. Obviously,
-we do not have access to the true posterior, otherwise the problem would have already been solved. But in the sections below,
+and its maximization corresponds to minimization of KL-divergence $$D_{\text{KL}}(q_\phi(\mathbf{z}|\mathbf{x}_0)||p(\mathbf{z|\mathbf{x}_0}))$$
+between approximate and true posterior probabilities. To maximize ELBO we need
+to maximize the likelihood and minimize the prior term: the better we match the prior, the less we subtract
+(KL-divergence is non-negative). And thus, when we search for neural network
+parameters $$\phi$$ maximizing the ELBO, we, at the same time, obtain a better match to the true posterior. While
+we do not have access to the true posterior, otherwise the problem would have already been solved, in the sections below
 we will see how ELBO can be simplified given a particular model choice, e.g., VAE and a toy example below.
 
 {% include expandable-box.html 
@@ -619,9 +633,9 @@ content="
 
 Unlike MCMC, which constructs the posterior by the random walk, variational inference
 directly estimates the approximate posterior through optimization of ELBO.
-Here, we use the same likelihood operator mapping latents to data with known parameters ($$k$$, $$c$$).
-This Bayesian inference model is very simple to be actually solved by VI in real life.
-I use it as a toy example to illustrate the Variational Inference framework.
+Here, we use the same likelihood operator mapping latents to data with known parameters ($$k$$, $$c$$) as in the MCMC example above.
+This Bayesian inference model is too simple for practical VI applications, but serves
+as a toy example to illustrate the Variational Inference framework.
 
 As opposed to randomly walking in the latent space,
 our objective is to find an approximate latent posterior $$q_\phi(z|x_0)$$, which maximizes the ELBO
@@ -634,7 +648,7 @@ $$
 \end{align}
 $$
 
-We want to find the map for all observations and latents $$i$$. Given that we draw
+We want to find this posterior for all observations and latents $$i$$. Given that we draw
 the data samples independently, we can use the factorization of marginal likelihoods
 (e.g., see <a href='https://arxiv.org/pdf/1312.6114' target='blank'>Kingma and Welling, 2013</a>: page 3, paragraph 3):
 
@@ -677,7 +691,7 @@ $$
 Let me, for illustration purposes, drop the prior term from ELBO. I briefly summarize its influence on the posterior towards the end of the subsection.
 
 What would optimal parameters $$\phi$$ be? If we take the log of the likelihood term and ignore the scaling factor
-(let's assume fixed data variance $$\sigma$$ corresponding to 5&#37; measurement error):
+(let's assume fixed data variance $$\sigma$$ corresponding to 5&#37; measurement error) we get:
 
 $$
 \begin{align}
@@ -763,7 +777,7 @@ Multiple latent draws can be used in MSE evaluation while learning the posterior
 
 _In the ELBO objective, we should also minimize a prior matching term (ignored so far), which shapes $$q_\phi(\cdot)$$
 towards desired a priori characteristics. For instance, if both the posterior and the prior are Gaussian, KL-divergence
-has an analytical expression measuring the dfference between their means and variances. And the closer $$\mu_\theta(\cdot)$$
+has an analytical expression measuring the difference between their means and variances. And the closer $$\mu_\theta(\cdot)$$
 and $$\sigma_\theta(\cdot)$$ get to the mean and the variance of the a priori Gaussian, e.g., unit-variance zero-mean Gaussian, the higher the ELBO gets.
 The unit-variance constraint helps create a more well-behaved latent space,
 where all the latent values are not spread all over but
@@ -850,19 +864,14 @@ to model uncertainty, regularize a latent space by a prior matching term, as wel
 advanced numerical and probabilistic solver, we then obtain a probabilistic distribution of the latent variable posterior
 given the observed data by maximizing the corresponding ELBO objective.
 
-Talk about below when introducing VAE
-posterior - encoder
-likelihood - decoder
-but still Variational Objective 
-Reverse diffusion operator is more complex but in a nutshell it moves from noise maps $$\mathbf{z}_1,\mathbf{z}_2,...,\mathbf{z}_T$$ to an image $$\mathbf{x}_0$$. How close we get to a training $$\mathbf{x}_0$$ will affect our likelihood and posterior correspondingly.
-
 "%}
 
 You can see where the name ELBO comes from: we bound the evidence from below (recall KL is non-negative) with
 equality (meaning ELBO equals the evidence it attempts to bound) achieved when approximated posterior $$q_\phi(\mathbf{z}|\mathbf{x}_0)$$
 matches the true one - $$p(\mathbf{z|\mathbf{x}_0})$$.
 By maximizing the ELBO we minimize KL-divergence and, due to bounding, maximize the evidence. 
-While ELBO bounds log likelihood from below, negative ELBO bounds negative log likelihood from above. The latter is often referred to as Variational Lower Bound (VLB) and is used frequently diffusion model cost function
+While ELBO bounds log likelihood from below, negative ELBO bounds negative log likelihood from above.
+The latter is often referred to as Variational Lower Bound (VLB) and is used frequently in diffusion model cost functions
 (<a href="https://arxiv.org/abs/1503.03585" target="_blank">Sohl-Dickstein et al., 2015</a>;
 <a href="https://arxiv.org/abs/2006.11239" target="_blank">Ho et al., 2020</a>;
 <a href="https://lilianweng.github.io/posts/2021-07-11-diffusion-models/#:~:text=The%20data%20sample,isotropic%20Gaussian%20distribution." target="_blank">Lilian Weng blog</a>) alongside with ELBO.
@@ -870,13 +879,19 @@ While ELBO bounds log likelihood from below, negative ELBO bounds negative log l
 So far we have covered how latents can be estimated from data using Variational Inference. How does it help in new sample generation?
 According to <a href="https://arxiv.org/abs/2208.11970" target="_blank">Luo, (2022)</a>: '... as we increase the lower bound by tuning the
 parameters $$\phi$$ to maximize the ELBO, we gain access to components that can be used to model the true
-data distribution and sample from it, thus learning a generative model'. For instance, in our linear operator
-example for Variational Inference we have estimated the coefficients transforming data to latents - $$\phi=(\frac{1}{k},-c)$$.
+data distribution and sample from it, thus learning a generative model'. In other words,
+the more effectively our latents capture the properties of the data, the better we can
+reconstruct/generate new observations. For instance, in our linear operator example for Variational Inference
+we have estimated the coefficients transforming data to latents - $$\phi=(\frac{1}{k},-c)$$.
+We can perfectly reconstruct existing observations by applying our forward modeling operator
+to their encoded versions, while creating a new observation is simply a matter of choosing a latent value from the region we learned through 
+$$\phi$$ and applying our forward model.
 
 The opposite direction of converting latents to data can be learnt as well. For instance, this is the case
-for our example of MCMC for linear regression, with the likelihood function $$p_\theta(x_0 \vert z)$$, where $$\theta=(k,c)$$.
+for our MCMC example for linear regression, with the likelihood function $$p_\theta(x_0 \vert z)$$, where $$\theta=(k,c)$$.
 As we will see when exploring VAEs, both $$\phi$$ and $$\theta$$ can be optimized for, when maximizing the ELBO.
-In fact, learning the reverse transform (from latents to data) is crucial for generative modeling. It allows for
+In fact, learning the reverse transform (from latents to data) is crucial for generative modeling
+(we typically do not know our forward model and it is much more complex than above). It allows for
 new data creation by first choosing a latent sample and converting it to a data space, thus resulting in an observation,
 which we may have never registered in the first place.
 
